@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --color-brand-dark: #0B1120;
+  --color-brand-blue: #0F172A;
+  --color-brand-gold: #FFC107;
+  --color-brand-gold-light: #FFD54F;
+  --color-brand-gold-dark: #FFB300;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-[#0B1120] to-[#0F172A] text-zinc-300 antialiased selection:bg-[#FFC107] selection:text-black transition-colors duration-300 min-h-screen;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FFC107;
+  }
+}
