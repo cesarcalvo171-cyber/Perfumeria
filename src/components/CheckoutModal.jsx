@@ -43,42 +43,38 @@ export default function CheckoutModal({
 
 
   const generateWhatsAppMessage = () => {
-    const greeting = clientName.trim()
-      ? `Hola, soy *${clientName.trim()}*`
-      : `Hola`;
-
-    const phoneNote = clientPhone.trim()
-      ? ` | Mi contacto: ${clientPhone.trim()}`
-      : '';
-
-    let msg = `${greeting}${phoneNote}. Me gustaría confirmar el siguiente pedido:\n\n`;
-    msg += `📋 *Detalle del Pedido:*\n`;
+    let msg = ` DETALLE DE LA ORDEN:\n\n`;
 
     cartItems.forEach((item) => {
-      const sizeStr = item.selectedSize ? ` · Tamaño: ${item.selectedSize}` : '';
-      const colorStr = (item.product_variants && item.product_variants.length > 1 && item.selectedColor?.name)
-        ? ` · Variante: ${item.selectedColor.name}`
-        : '';
-      const lineTotal = item.price * item.quantity;
-      msg += `• *${item.name}*${sizeStr}${colorStr}\n`;
-      msg += `   ${item.quantity} und × €${item.price.toFixed(2)} = *€${lineTotal.toFixed(2)}*\n`;
-
-      // Incluir URL de la imagen del producto para referencia visual
+      const variantName = item.selectedColor?.name || 'Variante 1';
+      const sizeStr = item.selectedSize ? item.selectedSize.replace(/(\d+)\s*(ml)/i, '$1 $2') : 'Única';
+      const quantityStr = `${item.quantity} ${item.quantity === 1 ? 'unidad' : 'unidades'}`;
+      
+      msg += `    Producto: ${item.name} (${variantName})\n\n`;
+      msg += `    Tamaño: ${sizeStr}\n\n`;
+      msg += `    Cantidad: ${quantityStr}\n\n`;
+      
       if (item.image && item.image.startsWith('http')) {
-        msg += `   🖼️ Ver foto: ${item.image}\n`;
+        msg += `    Imagen de referencia: Ver Foto (${item.image})\n\n`;
+      } else {
+        msg += `    Imagen de referencia: Ver Foto\n\n`;
       }
     });
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const discountAmount = (subtotal * discountPercent) / 100;
 
-    msg += `\n💰 *Resumen:*\n`;
-    msg += `- Subtotal: €${subtotal.toFixed(2)}\n`;
+    msg += ` RESUMEN DE COMPRA:\n\n`;
+    msg += `    Subtotal: €${subtotal.toFixed(2)}\n\n`;
     if (discountPercent > 0) {
-      msg += `- Descuento (${discountPercent}%): -€${discountAmount.toFixed(2)}\n`;
+      msg += `    Descuento (${discountPercent}%): -€${discountAmount.toFixed(2)}\n\n`;
     }
-    msg += `\n💵 *TOTAL: €${total.toFixed(2)}*\n\n`;
-    msg += `Quedo atento/a a sus instrucciones de pago. ¡Gracias! 😊`;
+    msg += `    TOTAL A PAGAR: €${total.toFixed(2)}\n\n`;
+
+    msg += ` PRÓXIMO PASO:\n`;
+    msg += `Por favor, confírmanos si los datos de tu orden son correctos. En cuanto nos des el visto bueno, te enviaremos las instrucciones de pago detalladas de forma privada por este chat.\n\n`;
+    msg += `Una vez coordinado el pago, procederemos con la preparación y el envío de tu fragancia.\n\n`;
+    msg += `¡Quedamos a tu entera disposición! Si tienes alguna duda, escríbenos. ¡Que tengas un excelente día!`;
 
     return msg;
   };
@@ -92,7 +88,7 @@ export default function CheckoutModal({
     const randomOrderNum = 'WA-' + Math.floor(100000 + Math.random() * 900000);
     const subtotalCalc = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const totalCost = cartItems.reduce((acc, item) => acc + (item.cost_price || 0) * item.quantity, 0);
-    // Ganancia es el total pagado (incluye envío y descuentos) menos el costo de prendas (y menos costo de envío si asumimos que se paga integro al carrier)
+    // Ganancia es el total pagado (incluye envío y descuentos) menos el costo de perfumes (y menos costo de envío si asumimos que se paga íntegro al carrier)
     // Para simplificar: ganancia = total_amount - total_cost - shipping_cost
     const profit = total - totalCost - shippingCost;
 
@@ -288,7 +284,7 @@ export default function CheckoutModal({
                 </div>
 
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-light leading-relaxed">
-                  Este es el mensaje que se enviará a la vendedora. Incluye los links de las fotos de cada prenda para referencia visual.
+                  Este es el mensaje que se enviará a la vendedora. Incluye los links de las fotos de cada perfume para referencia visual.
                 </p>
 
                 <div className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-4 font-mono text-[10px] text-zinc-700 dark:text-zinc-300 max-h-56 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text">
@@ -297,7 +293,7 @@ export default function CheckoutModal({
 
                 <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">
                   <span className="text-base flex-shrink-0">💡</span>
-                  <span>Los links de imagen solo funcionan si la tienda está publicada en internet. La vendedora puede abrirlos con un toque para ver la foto de cada prenda.</span>
+                  <span>Los links de imagen solo funcionan si la tienda está publicada en internet. La vendedora puede abrirlos con un toque para ver la foto de cada perfume.</span>
                 </div>
 
                 <div className="pt-1">

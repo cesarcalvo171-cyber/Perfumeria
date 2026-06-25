@@ -1322,7 +1322,7 @@ export default function AdminPanel({
 
           {/* RIGHT: Existing Products List (5 cols) */}
           <div className="lg:col-span-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm flex flex-col max-h-[85vh] overflow-hidden">
-            <h2 className="text-base font-bold uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-850 pb-3 mb-4">Prendas Existentes ({productsList.length})</h2>
+            <h2 className="text-base font-bold uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-850 pb-3 mb-4">Perfumes Existentes ({productsList.length})</h2>
 
             {loadingProducts ? (
               <div className="flex-1 flex items-center justify-center text-xs text-zinc-400 py-12">
