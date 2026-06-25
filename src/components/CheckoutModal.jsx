@@ -18,13 +18,24 @@ export default function CheckoutModal({
   cartItems,
   onClearCart
 }) {
-  if (!isOpen) return null;
-
   const [step, setStep] = useState(1); // 1: Datos, 2: Vista previa, 3: Éxito
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [errors, setErrors] = useState({});
   const [orderNumber, setOrderNumber] = useState('');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      setClientName('');
+      setClientPhone('');
+      setErrors({});
+      const randomOrderNum = 'WA-' + Math.floor(100000 + Math.random() * 900000);
+      setOrderNumber(randomOrderNum);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const validate = () => {
     const newErrors = {};
@@ -44,6 +55,8 @@ export default function CheckoutModal({
 
   const generateWhatsAppMessage = () => {
     let msg = ` DETALLE DE LA ORDEN:\n\n`;
+    msg += `    Cliente: ${clientName.trim() || 'Anónimo'}\n`;
+    msg += `    Referencia: ${orderNumber || 'WA-000000'}\n\n`;
 
     cartItems.forEach((item) => {
       const variantName = item.selectedColor?.name || 'Variante 1';
@@ -85,7 +98,7 @@ export default function CheckoutModal({
       return;
     }
 
-    const randomOrderNum = 'WA-' + Math.floor(100000 + Math.random() * 900000);
+    const randomOrderNum = orderNumber || ('WA-' + Math.floor(100000 + Math.random() * 900000));
     const subtotalCalc = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const totalCost = cartItems.reduce((acc, item) => acc + (item.cost_price || 0) * item.quantity, 0);
     // Ganancia es el total pagado (incluye envío y descuentos) menos el costo de perfumes (y menos costo de envío si asumimos que se paga íntegro al carrier)
