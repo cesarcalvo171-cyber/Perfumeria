@@ -39,8 +39,17 @@ export default function ProductCard({
     ? selectedSize 
     : (availableSizes[0] || 'Única');
 
+  // Resolve size-specific price
+  const resolvedPrice = activeVariant?.price_by_size?.[activeSize] !== undefined
+    ? Number(activeVariant.price_by_size[activeSize])
+    : Number(price);
+
+  const resolvedOriginalPrice = activeVariant?.original_price_by_size?.[activeSize] !== undefined && activeVariant.original_price_by_size[activeSize] !== null
+    ? (activeVariant.original_price_by_size[activeSize] ? Number(activeVariant.original_price_by_size[activeSize]) : null)
+    : (originalPrice ? Number(originalPrice) : null);
+
   // Calculate discount percentage
-  const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+  const discount = resolvedOriginalPrice ? Math.round(((resolvedOriginalPrice - resolvedPrice) / resolvedOriginalPrice) * 100) : 0;
 
   // Calculate total product stock
   const totalStock = hasVariants 
@@ -212,11 +221,11 @@ export default function ProductCard({
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2">
               <span className="text-xs font-bold text-[#FFC107]">
-                €{price.toFixed(2)}
+                €{resolvedPrice.toFixed(2)}
               </span>
-              {originalPrice && (
+              {resolvedOriginalPrice && (
                 <span className="text-xs text-zinc-500 line-through">
-                  €{originalPrice.toFixed(2)}
+                  €{resolvedOriginalPrice.toFixed(2)}
                 </span>
               )}
             </div>

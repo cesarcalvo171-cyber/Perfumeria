@@ -43,13 +43,19 @@ export default function AdminPanel({
   
   // Variants Form state
   const [variants, setVariants] = useState([
-    { color_name: 'Variante 1', color_hex: '#000000', sizes: [], file: null, previewUrl: '' }
+    { color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, price_by_size: {}, cost_price_by_size: {}, original_price_by_size: {}, file: null, previewUrl: '' }
   ]);
 
   // Hero settings state
   const [heroTitle, setHeroTitle] = useState('');
   const [heroSubtitle, setHeroSubtitle] = useState('');
   const [heroCta, setHeroCta] = useState('');
+
+  // Bulk import states
+  const [importCsvFile, setImportCsvFile] = useState(null);
+  const [importImageFiles, setImportImageFiles] = useState([]);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
 
   // Check auth session
   useEffect(() => {
@@ -89,11 +95,14 @@ export default function AdminPanel({
           color_hex: v.color_hex || '#000000',
           sizes: v.sizes || [],
           stock_by_size: v.stock_by_size || {},
+          price_by_size: v.price_by_size || {},
+          cost_price_by_size: v.cost_price_by_size || {},
+          original_price_by_size: v.original_price_by_size || {},
           file: null,
           previewUrl: v.image_url || ''
         })));
       } else {
-        setVariants([{ color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, file: null, previewUrl: '' }]);
+        setVariants([{ color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, price_by_size: {}, cost_price_by_size: {}, original_price_by_size: {}, file: null, previewUrl: '' }]);
       }
     } else {
       // Reset form
@@ -105,9 +114,282 @@ export default function AdminPanel({
       setCategory(CATEGORIES[0]);
       setDetailsInput('');
       setIsFeatured(false);
-      setVariants([{ color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, file: null, previewUrl: '' }]);
+      setVariants([{ color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, price_by_size: {}, cost_price_by_size: {}, original_price_by_size: {}, file: null, previewUrl: '' }]);
     }
   }, [productToEdit]);
+
+  const parseCSV = (text) => {
+    const lines = [];
+    let row = [""];
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      const next = text[i+1];
+
+      if (c === '"') {
+        if (inQuotes && next === '"') {
+          row[row.length - 1] += '"';
+          i++; // Skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (c === ',' && !inQuotes) {
+        row.push("");
+      } else if ((c === '\r' || c === '\n') && !inQuotes) {
+        if (c === '\r' && next === '\n') {
+          i++;
+        }
+        lines.push(row);
+        row = [""];
+      } else {
+        row[row.length - 1] += c;
+      }
+    }
+    if (row.length > 1 || row[0] !== "") {
+      lines.push(row);
+    }
+    return lines;
+  };
+
+  const handleDownloadTemplate = (e) => {
+    e.preventDefault();
+    const headers = ['nombre', 'descripcion', 'categoria', 'destacado', 'detalles', 'nombre_imagen_archivo', 'tallas', 'stock', 'precios', 'costos', 'originales'];
+    const row = [
+      '"Club De Nuit Men"',
+      '"Fragancia masculina con notas cítricas e intensas, ideal para uso nocturno."',
+      '"Perfumes Hombre"',
+      'TRUE',
+      '"Larga duracion|Notas de salida: bergamota y limon|Fondo avainillado"',
+      'club_de_nuit.png',
+      '"50ml,100ml"',
+      '"10,20"',
+      '"45.00,85.00"',
+      '"25.00,45.00"',
+      '""'
+    ];
+    const csvContent = [headers.join(','), row.join(',')].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'plantilla_catalogo_perfumes.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportCSV = async (e) => {
+    e.preventDefault();
+    if (!importCsvFile) {
+      alert('Por favor selecciona un archivo CSV.');
+      return;
+    }
+    
+    setImportLoading(true);
+    setImportProgress('Leyendo archivo CSV...');
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const text = event.target.result;
+        const rows = parseCSV(text);
+        
+        if (rows.length < 2) {
+          alert('El archivo CSV está vacío o no contiene filas de datos.');
+          setImportLoading(false);
+          return;
+        }
+
+        const headers = rows[0].map(h => h.trim().toLowerCase());
+        const dataRows = rows.slice(1).filter(r => r.length > 0 && r[0].trim() !== '');
+
+        // Map column indexes
+        const idx = {
+          nombre: headers.indexOf('nombre'),
+          descripcion: headers.indexOf('descripcion'),
+          categoria: headers.indexOf('categoria'),
+          destacado: headers.indexOf('destacado'),
+          detalles: headers.indexOf('detalles'),
+          nombre_imagen_archivo: headers.indexOf('nombre_imagen_archivo'),
+          tallas: headers.indexOf('tallas'),
+          stock: headers.indexOf('stock'),
+          precios: headers.indexOf('precios'),
+          costos: headers.indexOf('costos'),
+          originales: headers.indexOf('originales')
+        };
+
+        if (idx.nombre === -1 || idx.tallas === -1 || idx.precios === -1) {
+          alert('El CSV debe contener al menos las columnas "nombre", "tallas" y "precios".');
+          setImportLoading(false);
+          return;
+        }
+
+        setImportProgress('Subiendo imágenes al servidor...');
+        const imageMap = {}; // Maps local file name to public URL
+
+        if (importImageFiles && importImageFiles.length > 0) {
+          for (let i = 0; i < importImageFiles.length; i++) {
+            const file = importImageFiles[i];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2, 9)}_${Date.now()}.${fileExt}`;
+            const filePath = `variants/${fileName}`;
+
+            setImportProgress(`Subiendo imagen: ${file.name} (${i + 1}/${importImageFiles.length})...`);
+            
+            const { error: uploadError } = await supabase.storage
+              .from('product-images')
+              .upload(filePath, file);
+
+            if (uploadError) {
+              console.error('Error al subir imagen ' + file.name, uploadError.message);
+              continue;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+              .from('product-images')
+              .getPublicUrl(filePath);
+
+            imageMap[file.name.trim().toLowerCase()] = publicUrl;
+          }
+        }
+
+        setImportProgress('Procesando productos...');
+        // Group by product name
+        const productsMap = {};
+
+        dataRows.forEach(row => {
+          const nameVal = row[idx.nombre]?.trim();
+          if (!nameVal) return;
+
+          if (!productsMap[nameVal]) {
+            const detailsArray = row[idx.detalles] 
+              ? row[idx.detalles].split('|').map(d => d.trim()).filter(d => d.length > 0)
+              : [];
+            
+            const firstPriceArray = row[idx.precios] ? row[idx.precios].split(',').map(p => parseFloat(p.trim()) || 0) : [0];
+            const firstCostArray = row[idx.costos] ? row[idx.costos].split(',').map(c => parseFloat(c.trim()) || 0) : [0];
+            const firstOriginalArray = row[idx.originales] ? row[idx.originales].split(',').map(o => o.trim() ? parseFloat(o.trim()) : null) : [null];
+
+            productsMap[nameVal] = {
+              name: nameVal,
+              description: row[idx.descripcion]?.trim() || '',
+              category: row[idx.categoria]?.trim() || CATEGORIES[0],
+              is_featured: row[idx.destacado]?.trim().toUpperCase() === 'TRUE',
+              details: detailsArray,
+              price: firstPriceArray[0] || 0,
+              cost_price: firstCostArray[0] || 0,
+              original_price: firstOriginalArray[0] || null,
+              variants: []
+            };
+          }
+
+          // Build variant sizes arrays/objects
+          const sizesList = row[idx.tallas] ? row[idx.tallas].split(',').map(s => s.trim()) : ['Única'];
+          const stocksList = row[idx.stock] ? row[idx.stock].split(',').map(s => parseInt(s.trim(), 10) || 0) : [1];
+          const pricesList = row[idx.precios] ? row[idx.precios].split(',').map(p => parseFloat(p.trim()) || 0) : [0];
+          const costsList = row[idx.costos] ? row[idx.costos].split(',').map(c => parseFloat(c.trim()) || 0) : [0];
+          const originalPricesList = row[idx.originales] ? row[idx.originales].split(',').map(o => o.trim() ? parseFloat(o.trim()) : null) : [null];
+
+          const stock_by_size = {};
+          const price_by_size = {};
+          const cost_price_by_size = {};
+          const original_price_by_size = {};
+
+          sizesList.forEach((sz, sIdx) => {
+            stock_by_size[sz] = stocksList[sIdx] !== undefined ? stocksList[sIdx] : 1;
+            price_by_size[sz] = pricesList[sIdx] !== undefined ? pricesList[sIdx] : 0;
+            cost_price_by_size[sz] = costsList[sIdx] !== undefined ? costsList[sIdx] : 0;
+            original_price_by_size[sz] = originalPricesList[sIdx] !== undefined ? originalPricesList[sIdx] : null;
+          });
+
+          // Match image filename to public URL
+          const csvImageFilename = row[idx.nombre_imagen_archivo]?.trim().toLowerCase();
+          const imageUrl = imageMap[csvImageFilename] || '/images/liquid_brun.png';
+
+          const variantIdx = productsMap[nameVal].variants.length + 1;
+
+          productsMap[nameVal].variants.push({
+            color_name: `Variante ${variantIdx}`,
+            color_hex: '#000000',
+            image_url: imageUrl,
+            sizes: sizesList,
+            stock_by_size,
+            price_by_size,
+            cost_price_by_size,
+            original_price_by_size
+          });
+        });
+
+        // Insert into database
+        let insertedCount = 0;
+        const productsArray = Object.values(productsMap);
+
+        for (let i = 0; i < productsArray.length; i++) {
+          const product = productsArray[i];
+          setImportProgress(`Guardando producto ${i + 1}/${productsArray.length}: ${product.name}...`);
+
+          // 1. Insert product
+          const { data: productData, error: productError } = await supabase
+            .from('products')
+            .insert({
+              name: product.name,
+              description: product.description,
+              price: product.price,
+              original_price: product.original_price,
+              cost_price: product.cost_price,
+              category: product.category,
+              details: product.details,
+              is_featured: product.is_featured
+            })
+            .select()
+            .single();
+
+          if (productError) {
+            console.error('Error al insertar producto ' + product.name, productError.message);
+            continue;
+          }
+
+          const productId = productData.id;
+
+          // 2. Insert variants linked to product
+          for (const variant of product.variants) {
+            const { error: variantError } = await supabase
+              .from('product_variants')
+              .insert({
+                product_id: productId,
+                color_name: variant.color_name,
+                color_hex: variant.color_hex,
+                image_url: variant.image_url,
+                sizes: variant.sizes,
+                stock_by_size: variant.stock_by_size,
+                price_by_size: variant.price_by_size,
+                cost_price_by_size: variant.cost_price_by_size,
+                original_price_by_size: variant.original_price_by_size
+              });
+
+            if (variantError) {
+              console.error('Error al insertar variante del producto ' + product.name, variantError.message);
+            }
+          }
+          insertedCount++;
+        }
+
+        alert(`¡Importación masiva completada! Se crearon ${insertedCount} productos con éxito.`);
+        setImportCsvFile(null);
+        setImportImageFiles([]);
+        setImportLoading(false);
+        setImportProgress('');
+        fetchProducts(); // Refresh list
+      };
+
+      reader.readAsText(importCsvFile);
+    } catch (err) {
+      console.error(err);
+      alert('Error general durante la importación: ' + err.message);
+      setImportLoading(false);
+    }
+  };
 
   // Pre-fill hero settings state
   useEffect(() => {
@@ -182,7 +464,7 @@ export default function AdminPanel({
 
   // Form handlers
   const handleAddVariant = () => {
-    setVariants([...variants, { color_name: `Variante ${variants.length + 1}`, color_hex: '#000000', sizes: [], stock_by_size: {}, file: null, previewUrl: '' }]);
+    setVariants([...variants, { color_name: `Variante ${variants.length + 1}`, color_hex: '#000000', sizes: [], stock_by_size: {}, price_by_size: {}, cost_price_by_size: {}, original_price_by_size: {}, file: null, previewUrl: '' }]);
   };
 
   const handleRemoveVariant = (index) => {
@@ -215,17 +497,45 @@ export default function AdminPanel({
   const handleSizeToggle = (variantIndex, size) => {
     const newVariants = [...variants];
     const sizeIndex = newVariants[variantIndex].sizes.indexOf(size);
-    if (!newVariants[variantIndex].stock_by_size) {
-      newVariants[variantIndex].stock_by_size = {};
-    }
+    if (!newVariants[variantIndex].stock_by_size) newVariants[variantIndex].stock_by_size = {};
+    if (!newVariants[variantIndex].price_by_size) newVariants[variantIndex].price_by_size = {};
+    if (!newVariants[variantIndex].cost_price_by_size) newVariants[variantIndex].cost_price_by_size = {};
+    if (!newVariants[variantIndex].original_price_by_size) newVariants[variantIndex].original_price_by_size = {};
     
     if (sizeIndex > -1) {
       newVariants[variantIndex].sizes.splice(sizeIndex, 1);
       delete newVariants[variantIndex].stock_by_size[size];
+      delete newVariants[variantIndex].price_by_size[size];
+      delete newVariants[variantIndex].cost_price_by_size[size];
+      delete newVariants[variantIndex].original_price_by_size[size];
     } else {
       newVariants[variantIndex].sizes.push(size);
-      newVariants[variantIndex].stock_by_size[size] = 1; // Default qty 1
+      newVariants[variantIndex].stock_by_size[size] = 1;
+      newVariants[variantIndex].price_by_size[size] = price ? parseFloat(price) : 0; // Default to general price
+      newVariants[variantIndex].cost_price_by_size[size] = costPrice ? parseFloat(costPrice) : 0; // Default to general cost
+      newVariants[variantIndex].original_price_by_size[size] = originalPrice ? parseFloat(originalPrice) : null;
     }
+    setVariants(newVariants);
+  };
+
+  const handlePriceChange = (variantIndex, size, val) => {
+    const newVariants = [...variants];
+    if (!newVariants[variantIndex].price_by_size) newVariants[variantIndex].price_by_size = {};
+    newVariants[variantIndex].price_by_size[size] = val !== '' ? parseFloat(val) : '';
+    setVariants(newVariants);
+  };
+
+  const handleCostChange = (variantIndex, size, val) => {
+    const newVariants = [...variants];
+    if (!newVariants[variantIndex].cost_price_by_size) newVariants[variantIndex].cost_price_by_size = {};
+    newVariants[variantIndex].cost_price_by_size[size] = val !== '' ? parseFloat(val) : '';
+    setVariants(newVariants);
+  };
+
+  const handleOriginalPriceChange = (variantIndex, size, val) => {
+    const newVariants = [...variants];
+    if (!newVariants[variantIndex].original_price_by_size) newVariants[variantIndex].original_price_by_size = {};
+    newVariants[variantIndex].original_price_by_size[size] = val !== '' ? parseFloat(val) : null;
     setVariants(newVariants);
   };
 
@@ -329,7 +639,10 @@ export default function AdminPanel({
             color_hex: variant.color_hex,
             image_url: publicUrl,
             sizes: variant.sizes,
-            stock_by_size: variant.stock_by_size || {}
+            stock_by_size: variant.stock_by_size || {},
+            price_by_size: variant.price_by_size || {},
+            original_price_by_size: variant.original_price_by_size || {},
+            cost_price_by_size: variant.cost_price_by_size || {}
           });
 
         if (variantError) throw variantError;
@@ -350,7 +663,7 @@ export default function AdminPanel({
       variants.forEach(v => {
         if (v.previewUrl && v.file) URL.revokeObjectURL(v.previewUrl);
       });
-      setVariants([{ color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, file: null, previewUrl: '' }]);
+      setVariants([{ color_name: 'Variante 1', color_hex: '#000000', sizes: [], stock_by_size: {}, price_by_size: {}, cost_price_by_size: {}, original_price_by_size: {}, file: null, previewUrl: '' }]);
       
       // Refresh products list
       fetchProducts();
@@ -435,7 +748,10 @@ export default function AdminPanel({
           color_hex: variant.color_hex,
           image_url: imageUrl,
           sizes: variant.sizes,
-          stock_by_size: variant.stock_by_size || {}
+          stock_by_size: variant.stock_by_size || {},
+          price_by_size: variant.price_by_size || {},
+          original_price_by_size: variant.original_price_by_size || {},
+          cost_price_by_size: variant.cost_price_by_size || {}
         });
       }
 
@@ -649,6 +965,59 @@ export default function AdminPanel({
               {productToEdit ? 'Editar Perfume Existente' : 'Agregar Nuevo Perfume'}
             </h2>
 
+            {!productToEdit && (
+              <div className="bg-zinc-50 dark:bg-zinc-950 p-4 border border-zinc-200 dark:border-zinc-850 mb-6 space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-white">Importación Masiva de Catálogo (CSV + Fotos)</h3>
+                <p className="text-[11px] text-zinc-400 dark:text-zinc-550 font-light leading-relaxed">
+                  Llene el catálogo en Excel y expórtelo como CSV. Seleccione el archivo CSV y luego arrastre todas las imágenes que correspondan al catálogo.
+                  <a href="#" onClick={handleDownloadTemplate} className="text-amber-500 hover:underline font-semibold ml-1.5 cursor-pointer">
+                    Descargar Plantilla CSV
+                  </a>
+                </p>
+                
+                <form onSubmit={handleImportCSV} className="space-y-3 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[8px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1">1. Archivo CSV (.csv)</label>
+                      <input 
+                        type="file" 
+                        accept=".csv" 
+                        required
+                        onChange={(e) => setImportCsvFile(e.target.files[0])}
+                        className="w-full text-[10px] text-zinc-500 border border-zinc-300 dark:border-zinc-800 px-2 py-1.5 bg-white dark:bg-zinc-900 cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1">2. Imágenes del Catálogo (múltiples)</label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple
+                        onChange={(e) => setImportImageFiles(Array.from(e.target.files))}
+                        className="w-full text-[10px] text-zinc-500 border border-zinc-300 dark:border-zinc-800 px-2 py-1.5 bg-white dark:bg-zinc-900 cursor-pointer"
+                      />
+                      {importImageFiles.length > 0 && (
+                        <p className="text-[9px] text-emerald-500 mt-1 font-semibold">✓ {importImageFiles.length} imágenes seleccionadas</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {importLoading ? (
+                    <div className="bg-zinc-100 dark:bg-zinc-900 p-3 text-center border border-zinc-200 dark:border-zinc-800">
+                      <div className="animate-pulse text-xs text-amber-500 font-semibold">{importProgress}</div>
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="w-full bg-[#FFC107] hover:bg-[#FFD54F] text-black text-[10px] font-bold py-2.5 uppercase tracking-[0.2em] shadow-sm transition-all cursor-pointer"
+                    >
+                      Iniciar Importación Masiva
+                    </button>
+                  )}
+                </form>
+              </div>
+            )}
+
             <form onSubmit={productToEdit ? handleUpdateProduct : handleSubmitProduct} className="space-y-6">
               
               {/* Product Info */}
@@ -827,32 +1196,93 @@ export default function AdminPanel({
                           {AVAILABLE_SIZES.map(size => {
                             const isChecked = variant.sizes.includes(size);
                             return (
-                              <div key={size} className="flex flex-col gap-1 items-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSizeToggle(vIdx, size)}
-                                  className={`text-[10px] font-semibold px-2.5 py-1 border transition-all cursor-pointer ${
-                                    isChecked
-                                      ? 'bg-black text-[#FAF9F6] border-black dark:bg-white dark:text-zinc-950 dark:border-white'
-                                      : 'border-zinc-200 dark:border-zinc-850 text-zinc-450 hover:border-zinc-455'
-                                  }`}
-                                >
-                                  {size}
-                                </button>
-                                {isChecked && (
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={variant.stock_by_size?.[size] ?? 1}
-                                    onChange={(e) => handleStockChange(vIdx, size, e.target.value)}
-                                    className="w-12 text-center text-[10px] border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white py-0.5 outline-none focus:border-black dark:focus:border-white transition-colors"
-                                    placeholder="Cant."
-                                  />
-                                )}
-                              </div>
+                              <button
+                                key={size}
+                                type="button"
+                                onClick={() => handleSizeToggle(vIdx, size)}
+                                className={`text-[10px] font-semibold px-2.5 py-1 border transition-all cursor-pointer ${
+                                  isChecked
+                                    ? 'bg-black text-[#FAF9F6] border-black dark:bg-white dark:text-zinc-950 dark:border-white'
+                                    : 'border-zinc-200 dark:border-zinc-850 text-zinc-450 hover:border-zinc-455'
+                                }`}
+                              >
+                                {size}
+                              </button>
                             );
                           })}
                         </div>
+
+                        {/* Active sizes details inputs */}
+                        {variant.sizes && variant.sizes.length > 0 && (
+                          <div className="mt-3 space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-3">
+                            <span className="block text-[9px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1">Precios e Inventario por Tamaño:</span>
+                            <div className="space-y-2.5">
+                              {variant.sizes.map(size => (
+                                <div key={size} className="flex flex-wrap items-center gap-3 bg-white dark:bg-zinc-900/50 p-2.5 border border-zinc-200 dark:border-zinc-850">
+                                  <span className="text-[10px] font-bold w-12 text-zinc-600 dark:text-zinc-350">{size}</span>
+                                  
+                                  {/* Stock */}
+                                  <div className="flex flex-col min-w-16 flex-1">
+                                    <label className="text-[8px] font-bold uppercase text-zinc-400 dark:text-zinc-500 mb-0.5">Stock</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      required
+                                      value={variant.stock_by_size?.[size] ?? 1}
+                                      onChange={(e) => handleStockChange(vIdx, size, e.target.value)}
+                                      className="w-full text-xs border border-zinc-300 dark:border-zinc-700 bg-transparent text-zinc-900 dark:text-white px-2 py-1 outline-none focus:border-black dark:focus:border-white"
+                                      placeholder="Cant."
+                                    />
+                                  </div>
+
+                                  {/* Precio Venta */}
+                                  <div className="flex flex-col min-w-20 flex-1">
+                                    <label className="text-[8px] font-bold uppercase text-zinc-400 dark:text-zinc-500 mb-0.5">Precio ($)</label>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      required
+                                      value={variant.price_by_size?.[size] ?? ''}
+                                      onChange={(e) => handlePriceChange(vIdx, size, e.target.value)}
+                                      className="w-full text-xs border border-zinc-300 dark:border-zinc-700 bg-transparent text-zinc-900 dark:text-white px-2 py-1 outline-none focus:border-black dark:focus:border-white"
+                                      placeholder="Venta"
+                                    />
+                                  </div>
+
+                                  {/* Costo */}
+                                  <div className="flex flex-col min-w-20 flex-1">
+                                    <label className="text-[8px] font-bold uppercase text-zinc-400 dark:text-zinc-500 mb-0.5">Costo ($)</label>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={variant.cost_price_by_size?.[size] ?? ''}
+                                      onChange={(e) => handleCostChange(vIdx, size, e.target.value)}
+                                      className="w-full text-xs border border-zinc-300 dark:border-zinc-700 bg-transparent text-zinc-900 dark:text-white px-2 py-1 outline-none focus:border-black dark:focus:border-white"
+                                      placeholder="Costo"
+                                    />
+                                  </div>
+
+                                  {/* Precio Oferta */}
+                                  <div className="flex flex-col min-w-20 flex-1">
+                                    <label className="text-[8px] font-bold uppercase text-zinc-400 dark:text-zinc-500 mb-0.5">Oferta ($)</label>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={variant.original_price_by_size?.[size] ?? ''}
+                                      onChange={(e) => handleOriginalPriceChange(vIdx, size, e.target.value)}
+                                      className="w-full text-xs border border-zinc-300 dark:border-zinc-700 bg-transparent text-zinc-900 dark:text-white px-2 py-1 outline-none focus:border-black dark:focus:border-white"
+                                      placeholder="Opcional"
+                                    />
+                                  </div>
+
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                     </div>

@@ -176,6 +176,22 @@ export default function App() {
     const itemColor = color || (variants.length > 0 ? { name: variants[0].color_name, hex: variants[0].color_hex } : null);
     const itemSize = size || (variants.length > 0 ? variants[0].sizes[0] : (product.sizes?.[0] || '100ml'));
 
+    // Find the variant matching the selected color/name
+    const activeVar = variants.find(v => v.color_name === itemColor?.name) || variants[0];
+    
+    // Determine the size-specific price, cost and original price
+    const specificPrice = activeVar?.price_by_size?.[itemSize] !== undefined
+      ? Number(activeVar.price_by_size[itemSize])
+      : Number(product.price);
+      
+    const specificCostPrice = activeVar?.cost_price_by_size?.[itemSize] !== undefined
+      ? Number(activeVar.cost_price_by_size[itemSize])
+      : Number(product.cost_price || 0);
+
+    const specificOriginalPrice = activeVar?.original_price_by_size?.[itemSize] !== undefined && activeVar.original_price_by_size[itemSize] !== null
+      ? (activeVar.original_price_by_size[itemSize] ? Number(activeVar.original_price_by_size[itemSize]) : null)
+      : (product.original_price ? Number(product.original_price) : null);
+
     setCart(prevCart => {
       const existingIdx = prevCart.findIndex(
         item => item.id === product.id && 
@@ -190,10 +206,13 @@ export default function App() {
       } else {
         return [...prevCart, {
           ...product,
+          price: specificPrice,
+          cost_price: specificCostPrice,
+          original_price: specificOriginalPrice,
           quantity,
           selectedSize: itemSize,
           selectedColor: itemColor,
-          image: variants.find(v => v.color_name === itemColor?.name)?.image_url || product.image || '/images/trench_coat.png'
+          image: activeVar?.image_url || product.image || '/images/liquid_brun.png'
         }];
       }
     });

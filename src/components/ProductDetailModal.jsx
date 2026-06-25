@@ -89,9 +89,18 @@ export default function ProductDetailModal({
     }, 2000);
   };
 
-  // Discount calculation
+  // Resolve size-specific price
   const originalPriceVal = product.originalPrice || product.original_price;
-  const discount = originalPriceVal ? Math.round(((originalPriceVal - price) / originalPriceVal) * 100) : 0;
+  const resolvedPrice = activeVariant?.price_by_size?.[selectedSize] !== undefined
+    ? Number(activeVariant.price_by_size[selectedSize])
+    : Number(price);
+
+  const resolvedOriginalPrice = activeVariant?.original_price_by_size?.[selectedSize] !== undefined && activeVariant.original_price_by_size[selectedSize] !== null
+    ? (activeVariant.original_price_by_size[selectedSize] ? Number(activeVariant.original_price_by_size[selectedSize]) : null)
+    : (originalPriceVal ? Number(originalPriceVal) : null);
+
+  // Discount calculation
+  const discount = resolvedOriginalPrice ? Math.round(((resolvedOriginalPrice - resolvedPrice) / resolvedOriginalPrice) * 100) : 0;
 
   // Image to display
   const displayImage = activeVariant ? activeVariant.image_url : (product.image || '/images/perfume_oud.png');
@@ -155,11 +164,11 @@ export default function ProductDetailModal({
                 </h2>
                 <div className="flex items-baseline gap-3 pt-1">
                   <span className="text-2xl font-bold text-[#D4AF37]">
-                    €{price.toFixed(2)}
+                    €{resolvedPrice.toFixed(2)}
                   </span>
-                  {originalPriceVal && (
+                  {resolvedOriginalPrice && (
                     <span className="text-base text-zinc-500 line-through font-light">
-                      €{originalPriceVal.toFixed(2)}
+                      €{resolvedOriginalPrice.toFixed(2)}
                     </span>
                   )}
                 </div>
