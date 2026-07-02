@@ -829,7 +829,7 @@ export default function AdminPanel({
     <div className="fixed inset-0 z-50 bg-[#FAF9F6] dark:bg-zinc-950 flex flex-col overflow-y-auto text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
       
       {/* Top Header */}
-      <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-white dark:bg-zinc-900 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button 
             onClick={onClose}
@@ -854,7 +854,7 @@ export default function AdminPanel({
 
       {/* Tab bar navigation if logged in */}
       {session && (
-        <div className="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex justify-center gap-6 py-2 px-6">
+        <div className="bg-zinc-100 dark:bg-zinc-900 flex justify-center gap-6 py-2 px-6">
           <button
             onClick={() => setActiveTab('products')}
             className={`text-xs font-bold uppercase tracking-wider pb-1.5 border-b-2 cursor-pointer transition-all ${
@@ -961,7 +961,7 @@ export default function AdminPanel({
           
           {/* LEFT: Add/Edit Product Form (7 cols) */}
           <div className="lg:col-span-7 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-sm">
-            <h2 className="text-base font-bold uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-850 pb-3 mb-6">
+            <h2 className="text-base font-bold uppercase tracking-widest pb-3 mb-6">
               {productToEdit ? 'Editar Perfume Existente' : 'Agregar Nuevo Perfume'}
             </h2>
 
@@ -1322,7 +1322,7 @@ export default function AdminPanel({
 
           {/* RIGHT: Existing Products List (5 cols) */}
           <div className="lg:col-span-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm flex flex-col max-h-[85vh] overflow-hidden">
-            <h2 className="text-base font-bold uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-850 pb-3 mb-4">Perfumes Existentes ({productsList.length})</h2>
+            <h2 className="text-base font-bold uppercase tracking-widest pb-3 mb-4">Perfumes Existentes ({productsList.length})</h2>
 
             {loadingProducts ? (
               <div className="flex-1 flex items-center justify-center text-xs text-zinc-400 py-12">

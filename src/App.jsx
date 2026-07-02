@@ -480,28 +480,28 @@ export default function App() {
 
       {/* Footer Design */}
       {!isAdmin && (
-        <footer className="bg-zinc-100 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-850 py-16 px-4 transition-colors duration-300">
+        <footer className="bg-zinc-100 dark:bg-zinc-900 py-16 px-4 transition-colors duration-300">
           <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-10 text-left">
             
             {/* Column 1: Brand Info */}
             <div className="space-y-4">
-              <h2 className="text-xl font-light tracking-[0.25em] uppercase text-[#D4AF37]">PERFUMERÍA RIHAN</h2>
+              <h2 className="text-xl font-light tracking-[0.25em] uppercase text-[#D4AF37]">AROMATIC</h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 font-light leading-relaxed max-w-xs">
-                Perfumería exclusiva con las mejores fragancias internacionales. Tu esencia, tu identidad.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
               </p>
               <div className="text-[10px] text-zinc-450 dark:text-zinc-500 font-mono flex items-center flex-wrap">
-                <span>© {new Date().getFullYear()} Perfumería Rihan. Todos los derechos reservados.</span>
+                <span>© {new Date().getFullYear()} Aromatic. Todos los derechos reservados.</span>
               </div>
             </div>
 
             {/* Column 2: Links */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">Colecciones</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">Lorem Ipsum</h4>
               <ul className="space-y-2 text-xs font-light text-zinc-650 dark:text-zinc-400">
-                <li><button onClick={() => setSelectedCategory('Perfumes Mujer')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Perfumes Mujer</button></li>
-                <li><button onClick={() => setSelectedCategory('Perfumes Hombre')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Perfumes Hombre</button></li>
-                <li><button onClick={() => setSelectedCategory('Unisex')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Unisex</button></li>
-                <li><button onClick={() => setSelectedCategory('Sets de Regalo')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Sets de Regalo</button></li>
+                <li><button onClick={() => setSelectedCategory('Perfumes Mujer')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Dolor Sit</button></li>
+                <li><button onClick={() => setSelectedCategory('Perfumes Hombre')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Amet Consectetur</button></li>
+                <li><button onClick={() => setSelectedCategory('Unisex')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Adipiscing Elit</button></li>
+                <li><button onClick={() => setSelectedCategory('Sets de Regalo')} className="hover:text-[#D4AF37] cursor-pointer transition-colors uppercase">Tempor Incididunt</button></li>
               </ul>
             </div>
 
@@ -509,8 +509,8 @@ export default function App() {
             <div className="space-y-3">
             
               <ul className="space-y-2 text-xs font-light text-zinc-600 dark:text-zinc-400">
-                <li><a href="#" className="hover:text-black dark:hover:text-white transition-colors">Politica de privacidad</a></li>
-                <li><a href="#" className="hover:text-black dark:hover:text-white transition-colors">Políticas de Cookies</a></li>
+                <li><a href="#" className="hover:text-black dark:hover:text-white transition-colors">Ut enim ad minim</a></li>
+                <li><a href="#" className="hover:text-black dark:hover:text-white transition-colors">Veniam quis nostrud</a></li>
 
               </ul>
             </div>

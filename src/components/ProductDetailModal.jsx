@@ -180,7 +180,7 @@ export default function ProductDetailModal({
               </p>
 
               {/* Options selection */}
-              <div className="space-y-4 text-left border-t border-zinc-200 dark:border-zinc-850 pt-4">
+              <div className="space-y-4 text-left pt-4">
                 
                 {/* Colors Select */}
                 {variants.length > 1 && (
@@ -256,7 +256,7 @@ export default function ProductDetailModal({
 
               {/* Specs checklist details */}
               {details && details.length > 0 && (
-                <div className="text-left border-t border-zinc-200 dark:border-zinc-850 pt-4 space-y-1.5">
+                <div className="text-left pt-4 space-y-1.5">
                   <span className="text-xs font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase block mb-1">
                     Detalles del Producto
                   </span>
@@ -271,7 +271,7 @@ export default function ProductDetailModal({
 
             {/* Quantity Selector & Add to Cart Action */}
             {!isAdmin && (
-              <div className="mt-8 border-t border-zinc-200 dark:border-zinc-850 pt-6 space-y-4">
+              <div className="mt-8 pt-6 space-y-4">
                 <div className="flex items-center gap-4">
                   
                   {/* Quantity adjustments */}

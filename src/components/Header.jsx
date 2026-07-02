@@ -20,7 +20,7 @@ export default function Header({
     <header className="sticky top-0 z-40 w-full transition-all duration-300">
 
       {/* Main Navbar */}
-      <div className="w-full bg-transparent border-b border-white/5 transition-colors duration-300">
+      <div className="w-full bg-transparent transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           
           {/* Logo & Mobile Trigger */}
@@ -34,10 +34,7 @@ export default function Header({
             </button>
             <a href="#" className="flex flex-col items-start justify-center text-white select-none hover:opacity-80 transition-opacity">
               <div className="text-left leading-none flex gap-2 items-baseline">
-                <span className="block text-xl font-sans tracking-wide font-bold capitalize">Aromatico</span>
-              {/*
-               <span className="text-[10px] text-zinc-500 uppercase tracking-widest hidden sm:inline-block">Rihan</span>
-                */ }
+                <span className="block text-xl font-sans tracking-wide font-bold capitalize">Aromatic</span>
               </div>
             </a>
           </div>

@@ -80,7 +80,7 @@ export default function ProductCard({
       className={`group flex flex-col w-full relative ${isCompletelyOut ? 'opacity-80 grayscale-[30%]' : ''}`}
     >
       {/* Image Showcase */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#0A0F1C] border border-white/5 transition-colors rounded-xl">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#0A0F1C] transition-colors rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         {/* Glow behind image */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-[#FFC107]/5 blur-[60px] rounded-full pointer-events-none"></div>
         
