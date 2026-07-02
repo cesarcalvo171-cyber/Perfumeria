@@ -78,11 +78,11 @@ export default function CheckoutModal({
     const discountAmount = (subtotal * discountPercent) / 100;
 
     msg += ` RESUMEN DE COMPRA:\n\n`;
-    msg += `    Subtotal: €${subtotal.toFixed(2)}\n\n`;
+    msg += `    Subtotal: $${subtotal.toFixed(2)}\n\n`;
     if (discountPercent > 0) {
-      msg += `    Descuento (${discountPercent}%): -€${discountAmount.toFixed(2)}\n\n`;
+      msg += `    Descuento (${discountPercent}%): -$${discountAmount.toFixed(2)}\n\n`;
     }
-    msg += `    TOTAL A PAGAR: €${total.toFixed(2)}\n\n`;
+    msg += `    TOTAL A PAGAR: $${total.toFixed(2)}\n\n`;
 
     msg += ` PRÓXIMO PASO:\n`;
     msg += `Por favor, confírmanos si los datos de tu orden son correctos. En cuanto nos des el visto bueno, te enviaremos las instrucciones de pago detalladas de forma privada por este chat.\n\n`;
@@ -388,7 +388,7 @@ export default function CheckoutModal({
                           Tamaño: {item.selectedSize} {item.product_variants && item.product_variants.length > 1 && item.selectedColor?.name ? `· ${item.selectedColor.name}` : ''}
                         </p>
                         <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-semibold mt-0.5">
-                          {item.quantity} × €{item.price.toFixed(2)}
+                          {item.quantity} × ${item.price.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -405,20 +405,20 @@ export default function CheckoutModal({
             <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-2 text-xs">
               <div className="flex justify-between text-zinc-500 dark:text-zinc-400 font-light">
                 <span>Subtotal</span>
-                <span>€{subtotal.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
 
               {discountPercent > 0 && (
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
                   <span>Descuento ({discountPercent}%)</span>
-                  <span>-€{discountAmount.toFixed(2)}</span>
+                  <span>-${discountAmount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-0.5">
                 <div className="flex justify-between font-bold text-[#D4AF37] text-sm">
                   <span>Total</span>
-                  <span>€{total.toFixed(2)}</span>
+                  <span>${total.toFixed(2)}</span>
                 </div>
               </div>
 

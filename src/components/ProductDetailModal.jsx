@@ -164,11 +164,11 @@ export default function ProductDetailModal({
                 </h2>
                 <div className="flex items-baseline gap-3 pt-1">
                   <span className="text-2xl font-bold text-[#D4AF37]">
-                    €{resolvedPrice.toFixed(2)}
+                    ${resolvedPrice.toFixed(2)}
                   </span>
                   {resolvedOriginalPrice && (
                     <span className="text-base text-zinc-500 line-through font-light">
-                      €{resolvedOriginalPrice.toFixed(2)}
+                      ${resolvedOriginalPrice.toFixed(2)}
                     </span>
                   )}
                 </div>

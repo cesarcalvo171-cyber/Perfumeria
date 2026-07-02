@@ -221,11 +221,11 @@ export default function ProductCard({
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2">
               <span className="text-xs font-bold text-[#FFC107]">
-                €{resolvedPrice.toFixed(2)}
+                ${resolvedPrice.toFixed(2)}
               </span>
               {resolvedOriginalPrice && (
                 <span className="text-xs text-zinc-500 line-through">
-                  €{resolvedOriginalPrice.toFixed(2)}
+                  ${resolvedOriginalPrice.toFixed(2)}
                 </span>
               )}
             </div>

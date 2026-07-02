@@ -127,7 +127,7 @@ export default function CartDrawer({
                                 {item.name}
                               </h3>
                                 <span className="text-xs sm:text-sm font-semibold text-[#D4AF37] block">
-                                  €{(item.price * item.quantity).toFixed(2)}
+                                  ${(item.price * item.quantity).toFixed(2)}
                                 </span>
                             </div>
 
@@ -140,7 +140,7 @@ export default function CartDrawer({
                               )}
                             </p>
                             <p className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                              €{item.price.toFixed(2)} c/u
+                              ${item.price.toFixed(2)} c/u
                             </p>
                           </div>
 
@@ -229,7 +229,7 @@ export default function CartDrawer({
                     <div className="flex justify-between">
                       <span>Subtotal</span>
                       <div className="text-right">
-                        <span className="font-medium text-[#D4AF37] block">€{subtotal.toFixed(2)}</span>
+                        <span className="font-medium text-[#D4AF37] block">${subtotal.toFixed(2)}</span>
                       </div>
                     </div>
 
@@ -245,7 +245,7 @@ export default function CartDrawer({
                     <div className="flex justify-between text-sm text-zinc-900 dark:text-white font-bold pt-2 border-t border-zinc-200 dark:border-zinc-800">
                       <span>Total estimado</span>
                       <div className="text-right">
-                        <span className="block text-[#D4AF37]">€{total.toFixed(2)}</span>
+                        <span className="block text-[#D4AF37]">${total.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
