@@ -72,7 +72,8 @@ export default function CheckoutModal({
         if (item.image.startsWith('http')) {
           imageUrl = item.image;
         } else if (item.image.startsWith('/')) {
-          imageUrl = window.location.origin + item.image;
+          const encodedPath = item.image.split('/').map(segment => encodeURIComponent(segment)).join('/');
+          imageUrl = window.location.origin + encodedPath;
         }
       }
 
