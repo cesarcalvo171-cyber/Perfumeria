@@ -8,7 +8,7 @@ import CheckoutModal from './components/CheckoutModal';
 import AdminPanel from './components/AdminPanel';
 import { supabase } from './supabaseClient';
 import { categories } from './data/products';
-import { SlidersHorizontal, Heart, X, Sparkles } from 'lucide-react';
+import { SlidersHorizontal, Heart, X, Sparkles, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function App() {
