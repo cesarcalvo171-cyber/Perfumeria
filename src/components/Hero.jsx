@@ -24,7 +24,7 @@ export default function Hero({ onExploreClick, featuredProducts = [], settings =
 
   // Determine active product & image
   const activeProduct = hasFeatured ? featuredProducts[currentIdx] : null;
-  const displayImage = activeProduct?.product_variants?.[0]?.image_url || activeProduct?.image || '';
+  const displayImage = activeProduct?.product_variants?.[0]?.image_url || activeProduct?.image || '/images/Baccarat_Rouge_540_(Maison Francis Kurkdjian).png';
 
   return (
     <section className="relative overflow-hidden bg-transparent">
