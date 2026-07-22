@@ -14,8 +14,7 @@ export default function Header({
   isAdmin
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-
+  
   return (
     <header className="sticky top-0 z-40 w-full transition-all duration-300">
 
@@ -45,38 +44,7 @@ export default function Header({
 
           {/* Actions & Search */}
           <div className="flex items-center gap-3 sm:gap-5">
-            {/* Search toggler / input */}
-            <div className="relative flex items-center">
-              {showSearch ? (
-                <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-200/55 dark:border-zinc-800">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar fragancias..."
-                    className="bg-transparent text-xs w-28 sm:w-44 focus:outline-none text-zinc-950 dark:text-white"
-                    autoFocus
-                  />
-                  <button 
-                    onClick={() => {
-                      setSearchQuery('');
-                      setShowSearch(false);
-                    }}
-                    className="text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowSearch(true)}
-                  className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all cursor-pointer"
-                  aria-label="Search"
-                >
-                  <Search size={18} />
-                </button>
-              )}
-            </div>
+           
 
             {/* Favorites Icon */}
             {!isAdmin && (

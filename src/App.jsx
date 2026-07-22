@@ -332,6 +332,8 @@ export default function App() {
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
   };
+  const [showSearch, setShowSearch] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans transition-colors duration-300">
@@ -423,6 +425,39 @@ export default function App() {
                 {tab === 'Todos' ? 'Todos' : tab.replace('Perfumes ', '')}
               </button>
             ))}
+             {/* Search toggler / input */}
+            <div className="relative flex items-center">
+              {showSearch ? (
+                <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-200/55 dark:border-zinc-800">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar fragancias..."
+                    className="bg-transparent text-xs w-28 sm:w-44 focus:outline-none text-zinc-950 dark:text-white"
+                    autoFocus
+                  />
+                  <button 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSearch(false);
+                    }}
+                    className="text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowSearch(true)}
+                  className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all cursor-pointer"
+                  aria-label="Search"
+                >
+                  <Search size={18} />
+                </button>
+              )}
+            </div>
+
           </div>
         </div>
 
