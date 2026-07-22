@@ -3,9 +3,53 @@ import { supabase } from '../supabaseClient';
 import { X, Plus, Trash2, LogIn, UserPlus, LogOut, Check, ChevronLeft, Image as ImageIcon, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SalesAdminTab from './SalesAdminTab';
-
+import * as Yup from 'yup';
 const CATEGORIES = ['Perfumes Hombre', 'Perfumes Mujer', 'Unisex', 'Sets de Regalo', 'Otros'];
 const AVAILABLE_SIZES = ['30ml', '50ml', '75ml', '100ml', '125ml', '150ml', '200ml', 'Única'];
+
+const productSchema = Yup.object().shape({
+  name: Yup.string()
+    .required('El nombre es obligatorio')
+    .min(3, 'El nombre debe tener al menos 3 caracteres'),
+  description: Yup.string()
+    .required('La descripción es obligatoria')
+    .min(10, 'La descripción debe tener al menos 10 caracteres'),
+  price: Yup.number()
+    .transform((value, originalValue) => (originalValue === '' || originalValue === null ? NaN : value))
+    .required('El precio es obligatorio')
+    .typeError('El precio debe ser un número válido')
+    .positive('El precio debe ser mayor que cero'),
+  originalPrice: Yup.number()
+    .transform((value, originalValue) => (originalValue === '' || originalValue === null ? null : value))
+    .nullable()
+    .typeError('El precio original debe ser un número válido')
+    .positive('El precio original debe ser mayor que cero'),
+  category: Yup.string()
+    .required('La categoría es obligatoria')
+    .oneOf(CATEGORIES, 'Categoría inválida'),
+  detailsInput: Yup.string()
+    .required('Los detalles son obligatorios')
+    .min(10, 'Los detalles deben tener al menos 10 caracteres'),
+  variants: Yup.array().of(
+    Yup.object().shape({
+      file: Yup.mixed()
+        .test('imageRequired', 'Cada variante debe tener una imagen', function(value) {
+          const { previewUrl, image_url } = this.parent || {};
+          if (value instanceof File) return true;
+          if (previewUrl || image_url || (typeof value === 'string' && value.length > 0)) return true;
+          return false;
+        })
+        .test('fileFormat', 'Formato no válido (solo JPG, PNG, WEBP)', (value) => {
+          if (!value || typeof value === 'string') return true;
+          return ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(value?.type);
+        })
+        .test('fileSize', 'La imagen no debe superar los 5MB', (value) => {
+          if (!value || typeof value === 'string') return true;
+          return value.size <= 5 * 1024 * 1024;
+        })
+    })
+  ).min(1, 'Debes agregar al menos 1 variante con su foto')
+});
 
 export default function AdminPanel({ 
   onClose, 
@@ -17,7 +61,8 @@ export default function AdminPanel({
 }) {
   // Navigation tab state
   const [activeTab, setActiveTab] = useState('products'); // 'products' or 'hero'
-
+//errores
+const [error, setError] = useState({});
   // Auth state
   const [session, setSession] = useState(null);
   const [email, setEmail] = useState('');
@@ -571,22 +616,12 @@ export default function AdminPanel({
 
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
+    setError({}); // Clear previous errors
 
     // Validations
-    if (!name.trim() || !price || parseFloat(price) <= 0) {
-      alert('Por favor ingresa un nombre válido y un precio mayor a 0.');
-      return;
-    }
-
-    const invalidVariant = variants.some(v => !v.file || v.sizes.length === 0);
-    if (invalidVariant) {
-      alert('Cada variante debe tener una Imagen seleccionada y al menos un Tamaño disponible.');
-      return;
-    }
-
-    setSubmitLoading(true);
 
     try {
+       await productSchema.validate({ name, description, price, originalPrice, category, detailsInput, variants }, { abortEarly: false });
       // 1. Insert product general info
       const detailsArray = detailsInput.split('\n').map(d => d.trim()).filter(d => d.length > 0);
       const productPrice = parseFloat(price);
@@ -669,10 +704,16 @@ export default function AdminPanel({
       fetchProducts();
 
     } catch (err) {
-      console.error(err);
-      alert('Error en creación: ' + err.message);
-    } finally {
-      setSubmitLoading(false);
+      if (err instanceof Yup.ValidationError) {
+       const validationErrors = {};
+       err.inner.forEach((e) => {
+         validationErrors[e.path] = e.message;
+       });
+       setError(validationErrors);
+      } else {
+       alert('Error al crear producto: ' + err.message);
+      }
+   
     }
   };
 
@@ -682,8 +723,14 @@ export default function AdminPanel({
     if (!productToEdit) return;
 
     // Validations
-    if (!name.trim() || !price || parseFloat(price) <= 0) {
-      alert('Por favor ingresa un nombre válido y un precio mayor a 0.');
+    try {
+      await productSchema.validate({ name, description, price, originalPrice, category, detailsInput, variants }, { abortEarly: false });
+    } catch (err) {
+      const newError = {};
+      err.inner.forEach((e) => {
+        newError[e.path] = e.message;
+      });
+      setError(newError);
       return;
     }
 
@@ -783,8 +830,16 @@ export default function AdminPanel({
       // Refresh list
       fetchProducts();
     } catch (err) {
-      console.error(err);
-      alert('Error al actualizar el producto: ' + err.message);
+      if (err instanceof Yup.ValidationError) {
+        const newError = {};
+        err.inner.forEach((e) => {
+          newError[e.path] = e.message;
+        });
+        setError(newError);
+      } else {
+        console.error(err);
+        alert('Error al actualizar el producto: ' + err.message);
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -996,6 +1051,7 @@ export default function AdminPanel({
                         onChange={(e) => setImportImageFiles(Array.from(e.target.files))}
                         className="w-full text-[10px] text-zinc-500 border border-zinc-300 dark:border-zinc-800 px-2 py-1.5 bg-white dark:bg-zinc-900 cursor-pointer"
                       />
+                      
                       {importImageFiles.length > 0 && (
                         <p className="text-[9px] text-emerald-500 mt-1 font-semibold">✓ {importImageFiles.length} imágenes seleccionadas</p>
                       )}
@@ -1032,6 +1088,9 @@ export default function AdminPanel({
                     placeholder="Ej: Liquid Brun - French Avenue"
                     className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white"
                   />
+                  {error.name && (
+                    <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.name}</p>
+                  )}
                 </div>
 
                 <div>
@@ -1045,6 +1104,9 @@ export default function AdminPanel({
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
+                  {error.category && (
+                    <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.category}</p>
+                  )}
                 </div>
               </div>
 
@@ -1061,6 +1123,9 @@ export default function AdminPanel({
                     placeholder="79.99"
                     className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white"
                   />
+                  {error.price && (
+                    <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.price}</p>
+                  )}
                 </div>
 
                 <div>
@@ -1074,6 +1139,7 @@ export default function AdminPanel({
                     placeholder="25.00"
                     className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white"
                   />
+                  
                 </div>
 
                 <div>
@@ -1086,6 +1152,9 @@ export default function AdminPanel({
                     placeholder="Opcional"
                     className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white"
                   />
+                  {error.originalPrice && (
+                    <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.originalPrice}</p>
+                  )}
                 </div>
               </div>
 
@@ -1113,6 +1182,10 @@ export default function AdminPanel({
                   placeholder="Detalles sobre la fragancia, notas olfativas y sensación general..."
                   className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white resize-none"
                 />
+                {error.description && (
+                  <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.description}</p>
+                )}
+
               </div>
 
               {/* Details & Material */}
@@ -1125,6 +1198,9 @@ export default function AdminPanel({
                   placeholder="Ej: Notas de salida: Bergamota y Pera&#10;Notas de corazón: Rosa turca&#10;Larga duración"
                   className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white resize-none"
                 />
+                {error.detailsInput && (
+                  <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.detailsInput}</p>
+                )}
               </div>
 
               {/* VARIANTS BUILDER */}
@@ -1136,10 +1212,15 @@ export default function AdminPanel({
                     onClick={handleAddVariant}
                     className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
                   >
+
                     <Plus size={12} />
                     Agregar Variante
                   </button>
+
                 </div>
+                {error.variants && typeof error.variants === 'string' && (
+                  <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.variants}</p>
+                )}
 
                 <div className="space-y-6">
                   {variants.map((variant, vIdx) => (
@@ -1186,6 +1267,9 @@ export default function AdminPanel({
                               </div>
                             )}
                           </div>
+                          {error[`variants[${vIdx}].file`] && (
+                            <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error[`variants[${vIdx}].file`]}</p>
+                          )}
                         </div>
                       </div>
 
