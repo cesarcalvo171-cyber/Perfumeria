@@ -24,7 +24,7 @@ export default function Hero({ onExploreClick, featuredProducts = [], settings =
 
   // Determine active product & image
   const activeProduct = hasFeatured ? featuredProducts[currentIdx] : null;
-  const displayImage = activeProduct?.product_variants?.[0]?.image_url || activeProduct?.image || '/images/liquid_brun.png';
+  const displayImage = activeProduct?.product_variants?.[0]?.image_url || activeProduct?.image || '';
 
   return (
     <section className="relative overflow-hidden bg-transparent">
