@@ -1088,7 +1088,7 @@ const [error, setError] = useState({});
                     className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white"
                   />
                   {error.name && (
-                    <p className="text-[16px] text-rose-500 mt-1 font-semibold">{error.name}</p>
+                    <p className="text-[9px] text-rose-500 mt-1 font-semibold">{error.name}</p>
                   )}
                 </div>
 
