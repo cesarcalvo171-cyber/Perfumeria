@@ -33,7 +33,8 @@ const productSchema = Yup.object().shape({
   variants: Yup.array().of(
     Yup.object().shape({
       file: Yup.mixed()
-        .test('imageRequired', 'Cada variante debe tener una imagen', function(value) {
+        .nullable()
+        .test('imageRequired', 'Debes subir una foto para esta variante', function(value) {
           const { previewUrl, image_url } = this.parent || {};
           if (value instanceof File) return true;
           if (previewUrl || image_url || (typeof value === 'string' && value.length > 0)) return true;
