@@ -35,15 +35,18 @@ export default function Hero({ onExploreClick, featuredProducts = [], settings =
           <div className="lg:col-span-6 space-y-6 sm:space-y-8 text-left z-10 pl-4 lg:pl-0">
             <div className="space-y-6">
               
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-wide text-white leading-[1.1]">
-               ENCUENTRA   <br/>
-                <span className="italic font-serif">TU
-FRAGANCIA</span> 
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-wide text-white leading-[1.1] whitespace-pre-line uppercase">
+                {settings.hero_title || settings.heroTitle || (
+                  <>
+                    ENCUENTRA <br/>
+                    <span className="italic font-serif">TU FRAGANCIA</span>
+                  </>
+                )}
               </h1>
             </div>
             
             <p className="text-zinc-400 text-sm sm:text-base font-light leading-relaxed max-w-md">
-              Perfumes de larga duración que combinan con tu estado de ánimo, estilo y personalidad.
+              {settings.hero_subtitle || settings.heroSubtitle || 'Perfumes de larga duración que combinan con tu estado de ánimo, estilo y personalidad.'}
             </p>
             
             <div className="pt-2">
@@ -51,7 +54,7 @@ FRAGANCIA</span>
                 onClick={onExploreClick}
                 className="group relative inline-flex items-center gap-3 bg-[#FFC107] hover:bg-[#FFD54F] text-black px-8 py-3.5 text-sm font-semibold transition-all duration-300 shadow-[0_0_20px_rgba(255,193,7,0.2)] hover:shadow-[0_0_30px_rgba(255,193,7,0.4)] cursor-pointer"
               >
-               Explora Nuestra coleccion
+                {settings.hero_cta || settings.heroCta || 'Explora Nuestra coleccion'}
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>

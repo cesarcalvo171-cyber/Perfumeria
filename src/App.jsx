@@ -89,7 +89,14 @@ export default function App() {
       if (data && data.length > 0) {
         const settingsObj = {};
         data.forEach(item => {
-          settingsObj[item.key] = item.value;
+          let val = item.value;
+          if (typeof val === 'string') {
+            try {
+              const parsed = JSON.parse(val);
+              if (typeof parsed === 'string') val = parsed;
+            } catch (e) {}
+          }
+          settingsObj[item.key] = val;
         });
         setHeroSettings(prev => ({...prev, ...settingsObj}));
       }
