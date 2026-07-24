@@ -403,6 +403,12 @@ export default function App() {
         featuredProducts={productsList.filter(p => p.is_featured === true)}
         settings={heroSettings}
         onOpenDetail={(prod) => setSelectedProduct(prod)}
+        onAddToCart={(prod, qty, size, color) => {
+          handleAddToCart(prod, qty, size, color);
+          setIsCartOpen(true);
+        }}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
       />
 
       {/* Main Catalog Shop */}
