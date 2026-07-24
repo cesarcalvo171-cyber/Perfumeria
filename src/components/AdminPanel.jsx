@@ -1517,7 +1517,7 @@ const [error, setError] = useState({});
                   required
                   value={heroSubtitle}
                   onChange={(e) => setHeroSubtitle(e.target.value)}
-                  placeholder="Ej: Siluetas limpias, tonos neutros y cortes contemporáneos diseñados para durar..."
+                  placeholder="Ej:Fragancias de lujo a precios accesibles. Descubre nuestra colección de perfumes exclusivos y déjate seducir por aromas cautivadores."
                   className="w-full text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-850 px-3 py-2.5 focus:outline-none focus:border-black dark:focus:border-white text-zinc-900 dark:text-white resize-none"
                 />
               </div>
