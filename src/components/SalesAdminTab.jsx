@@ -291,7 +291,12 @@ export default function SalesAdminTab() {
                                       <li key={item.id} className="flex justify-between items-start text-xs border-b border-zinc-200 dark:border-zinc-800/50 pb-3 last:border-0">
                                         <div>
                                           <p className="font-bold text-zinc-900 dark:text-white uppercase tracking-wider">{item.product_name}</p>
-                                          <p className="text-zinc-500 mt-0.5">Color: <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.selected_color_name}</span> | Talla: <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.selected_size}</span></p>
+                                          <p className="text-zinc-500 mt-0.5">
+                                            {item.selected_color_name && !item.selected_color_name.startsWith('Variante') && (
+                                              <>Presentación: <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.selected_color_name}</span> | </>
+                                            )}
+                                            Tamaño: <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.selected_size || 'Única'}</span>
+                                          </p>
                                           <p className="text-[10px] text-zinc-400 mt-1">Costo al proveedor: ${Number(item.cost_price).toFixed(2)} c/u</p>
                                         </div>
                                         <div className="text-right">
